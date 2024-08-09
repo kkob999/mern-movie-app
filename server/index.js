@@ -1,37 +1,62 @@
-const express = require('express')
+const express = require("express");
 const app = express();
-const cors = require('cors')
-const mongoose = require('mongoose')
-const bodyParser = require('body-parser')
-const Movie = require('./models/movie')
+const cors = require("cors");
+const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
+const Movie = require("./models/movie");
+const multer = require("multer");
 
-app.use(cors({credentials: true, origin: "http://localhost:3000/"}))
-app.use(bodyParser.json())
+const uploadMiddleware = multer({ dest: "uploads/" });
+const fs = require("fs");
+
+app.use(cors({ credentials: true, origin: "http://localhost:3000/" }));
+app.use(bodyParser.json());
 app.use(express.json());
+app.use("/uploads", express.static(__dirname + "/uploads"));
 
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect('mongodb+srv://kobruji:eUoREhSXKuQ2cCLW@movies.gavlg.mongodb.net/?retryWrites=true&w=majority&appName=Movies')
+mongoose.connect(
+  "mongodb+srv://kobruji:eUoREhSXKuQ2cCLW@movies.gavlg.mongodb.net/?retryWrites=true&w=majority&appName=Movies"
+);
 
-app.get("/", (req,res) => {
-    res.send("Hello, test")
-})
-
-app.post("/movie", async(req,res) => {
-    const movie = new Movie({
-        ...req.body
+app.get("/", (req, res) => {
+  Movie.find({})
+    .then((movie) => {
+      res.send(movie);
+      console.log(movie);
     })
+    .catch((e) => {
+      res.status(400).send(e);
+    });
+});
 
-    console.log(req.body)
+app.post("/movie", uploadMiddleware.single("file"), async (req, res) => {
 
-    try{
-        await movie.save()
-        res.status(201).send(movie)
-    }catch(e){
-        res.status(400).send(e)
-    }
-})
+  if (!req.file) {
+    return res.status(400).send("No file uploaded.");
+  }
 
-app.listen(4000)
+  const { originalname, path } = req.file;
+  const parts = originalname.split(".");
+  const ext = parts[parts.length - 1];
+  const newPath = path + "." + ext;
+  fs.renameSync(path, newPath);
 
-//
+  const { title, genres, rating } = req.body;
+  const movie = new Movie({
+    title,
+    genres,
+    poster: newPath,
+    rating,
+  });
+
+  try {
+    await movie.save();
+    res.status(201).send(movie);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+
+app.listen(4000);
