@@ -7,8 +7,6 @@ import Movie from "../components/Movie";
 export default function IndexPage() {
   const [movie, setMovie] = useState([]);
 
-  
-
   useEffect(() => {
     fetch(`http://localhost:4000`).then((response) => {
       response.json().then((movie) => {

@@ -31,6 +31,21 @@ app.get("/", (req, res) => {
     });
 });
 
+app.delete("/movie/:id", async (req,res) => {
+    try {
+        const movie = await Movie.findByIdAndDelete(req.params.id)
+
+        if (!movie) {
+            return res.status(404).send()
+        }
+
+        res.send(movie)
+        
+    } catch (e) {
+        res.status(500).send()
+    }
+})
+
 app.post("/movie", uploadMiddleware.single("file"), async (req, res) => {
 
   if (!req.file) {
