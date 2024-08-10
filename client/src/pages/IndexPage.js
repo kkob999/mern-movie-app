@@ -1,6 +1,5 @@
 import Header from "../components/Header";
 import "../App.css";
-import MovieCard from "../components/Movie";
 import { useEffect, useState } from "react";
 import Movie from "../components/Movie";
 
@@ -18,10 +17,10 @@ export default function IndexPage() {
 
   return (
     <>
-      <main className="px-8 bg-gray-100">
+      <main className="bg-gray-100 pb-8 min-h-screen">
         <Header />
-        <div className="flex-1 grid grid-cols-5 gap-8">
-          {movie.length > 0 && movie.map((mv) => <Movie {...mv} />)}
+        <div className="px-8 flex-1 grid grid-cols-5 gap-8 mt-8">
+          {movie.length > 0 ? movie.map((mv) => <Movie {...mv} />) : (<div>Add Reviewed Movie</div>)}
         </div>
       </main>
     </>

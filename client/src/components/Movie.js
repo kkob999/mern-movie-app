@@ -1,6 +1,10 @@
-import { Navigate, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Movie({ _id,title, genres, poster, rating }) {
+
+  const [redirect,setRedirect] = useState(false)
+  const navigate = useNavigate();
   
   const handleClick = async() => {
     try {
@@ -13,6 +17,7 @@ export default function Movie({ _id,title, genres, poster, rating }) {
 
       if (response.ok) {
         console.log(`Movie with ID ${_id} deleted successfully`);
+        setRedirect(true)
       } else {
         console.error('Failed to delete movie:', response.statusText);
       }
@@ -47,9 +52,11 @@ export default function Movie({ _id,title, genres, poster, rating }) {
     return <div className="flex flex-row">{arrStar}</div>;
   }
 
+  if(redirect) return navigate("/");
+
   return (
     <div
-      className="p-2.5 lg:max-w-xs flex flex-col items-center rounded-lg border-solid bg-white shadow-lg bg-clip-padding bg-opacity-60 border border-gray-200"
+      className="p-2.5 lg:max-w-xs flex flex-col items-center rounded-lg border-solid bg-white shadow-lg bg-clip-padding bg-opacity-60 border border-gray-200 transition duration-300 hover:scale-105"
       style={{
         backdropFilter: "blur(20px)",
         padding: "20px",
@@ -79,12 +86,15 @@ export default function Movie({ _id,title, genres, poster, rating }) {
       </div>
 
       <div className="flex flex-col items-center text-center">
-        <div className="h-14">
+        {rating > 0 ? (<div className="h-14">
           <h3 className="text-lg font-bold">{title}</h3>
-        </div>
+        </div>) : (<div className="h-12">
+          <h3 className="text-lg font-bold">{title}</h3>
+        </div>)}
+        
 
         <div className="w-full mt-2 flex flex-col items-center">
-          {ratingStar(rating)}
+          {rating > 0 ? ratingStar(rating) : (<button className="bg-blue-500 rounded-md text-white px-2 py-1 w-full">review</button>)}
           <div className="mt-2 text-sm">{genres}</div>
         </div>
       </div>
