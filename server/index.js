@@ -28,15 +28,20 @@ mongoose.connect(
   "mongodb+srv://kobruji:eUoREhSXKuQ2cCLW@movies.gavlg.mongodb.net/?retryWrites=true&w=majority&appName=Movies"
 );
 
-app.get("/", (req, res) => {
-  Movie.find({})
-    .then((movie) => {
-      res.send(movie);
-      console.log(movie);
-    })
-    .catch((e) => {
-      res.status(400).send(e);
-    });
+app.get("/", async (req, res) => {
+  try {
+    const movies = await Movie.find().populate("reviewer").exec();
+    const moviesWithReviewCount = await Promise.all(
+      movies.map(async (movie) => {
+        const reviewCount = await Movie.countDocuments({ title: movie.title });
+        return { ...movie.toObject(), reviewCount };
+      })
+    );
+
+    res.json(moviesWithReviewCount);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.delete("/movie/:id", async (req, res) => {
@@ -54,30 +59,43 @@ app.delete("/movie/:id", async (req, res) => {
 });
 
 app.post("/movie", uploadMiddleware.single("file"), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).send("No file uploaded.");
+  const { token } = req.cookies;
+  if (!token) {
+    return res.status(401).send("Unauthorized: No token provided.");
   }
 
-  const { originalname, path } = req.file;
-  const parts = originalname.split(".");
-  const ext = parts[parts.length - 1];
-  const newPath = path + "." + ext;
-  fs.renameSync(path, newPath);
+  jwt.verify(token, secret, {}, async (err, userInfo) => {
+    if (err) {
+      return res.status(401).send("Unauthorized: Invalid token.");
+    }
 
-  const { title, genres, rating } = req.body;
-  const movie = new Movie({
-    title,
-    genres,
-    poster: newPath,
-    rating,
+    if (!req.file) {
+      return res.status(400).send("No file uploaded.");
+    }
+
+    const { originalname, path } = req.file;
+    const parts = originalname.split(".");
+    const ext = parts[parts.length - 1];
+    const newPath = path + "." + ext;
+    fs.renameSync(path, newPath);
+
+    const { title, genres, rating } = req.body;
+    const movie = new Movie({
+      title,
+      genres,
+      poster: newPath,
+      rating,
+      reviewer: userInfo.id,
+    });
+
+    try {
+
+      await movie.save();
+      res.status(201).send(movie);
+    } catch (e) {
+      res.status(400).send(e);
+    }
   });
-
-  try {
-    await movie.save();
-    res.status(201).send(movie);
-  } catch (e) {
-    res.status(400).send(e);
-  }
 });
 
 app.post("/register", async (req, res) => {
@@ -101,20 +119,25 @@ app.post("/login", async (req, res) => {
   const user = await User.findOne({ username: username });
   //   console.log(user)
   if (user && bcrypt.compareSync(password, user.password)) {
-    jwt.sign({ username, id: user._id }, secret, { expiresIn: '1h' }, (err, token) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).send("Error signing token");
+    jwt.sign(
+      { username, id: user._id },
+      secret,
+      { expiresIn: "1h" },
+      (err, token) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).send("Error signing token");
+        }
+        res
+          .status(200)
+          .cookie("token", token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "strict",
+          })
+          .json({ id: user._id, username });
       }
-      res
-        .status(200)
-        .cookie("token", token, {
-          httpOnly: true,
-          secure: false, 
-          sameSite: "strict",
-        })
-        .json({ id: user._id, username });
-    });
+    );
   } else {
     res.status(400).send("Wrong credentials");
   }

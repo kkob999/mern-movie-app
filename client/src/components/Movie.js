@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState,useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../UserContext";
 
-export default function Movie({ _id,title, genres, poster, rating }) {
+export default function Movie({ _id,title, genres, poster, rating, reviewer, reviewCount,averageRating }) {
 
+  
+  const { setUserInfo, userInfo } = useContext(UserContext);
   const [redirect,setRedirect] = useState(false)
   const navigate = useNavigate();
+
+  // console.log(userInfo)
   
   const handleClick = async() => {
     try {
@@ -54,16 +59,18 @@ export default function Movie({ _id,title, genres, poster, rating }) {
 
   if(redirect) return navigate("/");
 
+  const isUserLoggedIn = userInfo && Object.keys(userInfo).length > 0;
+
   return (
     <div
-      className="p-2.5 lg:max-w-xs flex flex-col items-center rounded-lg border-solid bg-white shadow-lg bg-clip-padding bg-opacity-60 border border-gray-200 transition duration-300 hover:scale-105"
+      className="p-2.5 lg:max-w-xs lg:w-full md:w-full iphone:w-full xs:w-full  flex flex-col items-center rounded-lg border-solid bg-white shadow-lg bg-clip-padding bg-opacity-60 border border-gray-200 transition duration-300 hover:scale-105"
       style={{
         backdropFilter: "blur(20px)",
         padding: "20px",
         backgroundColor: "rgba(255, 255, 255, 0.5)", // Optional for visibility
       }}
     >
-      <button onClick={handleClick} className="absolute -top-6 -right-6 m-2 p-1 bg-red-500 text-white rounded-full z-10 hover:bg-red-600">
+      {isUserLoggedIn && <button onClick={handleClick} className="absolute -top-6 -right-6 m-2 p-1 bg-red-500 text-white rounded-full z-10 hover:bg-red-600">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -76,7 +83,8 @@ export default function Movie({ _id,title, genres, poster, rating }) {
             clip-rule="evenodd"
           />
         </svg>
-      </button>
+      </button>}
+      
       <div className="flex justify-center items-center mb-2 ">
         <img
           className="h-80 w-auto"
@@ -97,6 +105,9 @@ export default function Movie({ _id,title, genres, poster, rating }) {
           {rating > 0 ? ratingStar(rating) : (<button className="bg-blue-500 rounded-md text-white px-2 py-1 w-full">review</button>)}
           <div className="mt-2 text-sm">{genres}</div>
         </div>
+
+        <p>{averageRating}</p>
+        <p>review count: {reviewCount}</p>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { UserContext } from "../UserContext";
 
 import "../App.css";
 
@@ -11,6 +12,9 @@ export default function ReviewPage() {
   const [redirect, setRedirect] = useState(false);
 
   const navigate = useNavigate();
+  const { setUserInfo, userInfo } = useContext(UserContext);
+
+  console.log(userInfo.id)
 
   async function reviewMovie(ev) {
     ev.preventDefault();
@@ -18,11 +22,13 @@ export default function ReviewPage() {
     data.set("title", title);
     data.set("genres", genres);
     data.set("rating", rating);
+    data.set("reviewer", userInfo.id)
     data.append("file", files[0]);
 
     const response = await fetch("http://localhost:4000/movie", {
       method: "POST",
       body: data,
+      credentials: "include",
     });
 
     if (response.ok) setRedirect(true);
@@ -36,7 +42,7 @@ export default function ReviewPage() {
 
   return (
     <div className="px-8 max-w-full h-screen flex flex-col justify-center items-center">
-      <div className="w-1/2">
+      <div className="w-1/2 lg:w-3/4 md:w-3/4 sm:w-full iphone:w-full xs:w-full">
         <button
           onClick={goBackBtn}
           className="flex items-center space-x-2 bg-gray-300 text-black p-2 rounded-lg mb-2 hover:bg-gray-400"
@@ -57,13 +63,13 @@ export default function ReviewPage() {
         </button>
       </div>
 
-      <div className="py-12 bg-white border border-gray-200 rounded-lg shadow w-1/2 flex items-center justify-center">
+      <div className="py-12 bg-white border border-gray-200 rounded-lg shadow w-1/2 flex items-center justify-center lg:w-3/4 md:w-3/4 sm:w-full iphone:w-full xs:w-full sm:px-12 iphone:px-12 xs:px-12">
         <form
           onSubmit={reviewMovie}
           method="POST"
           className="space-y-4 w-full max-w-md "
         >
-          <h1 className="text-5xl mb-6 text-center">Review Movie</h1>
+          <h1 className="text-5xl mb-6 text-center xs:text-3xl">Review Movie</h1>
 
           <div className="flex flex-col">
             <div className="flex flex-row">

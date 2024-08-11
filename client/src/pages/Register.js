@@ -63,7 +63,7 @@ export default function Register() {
           </div>
         )}
         {/* Form */}
-        <div className="py-12 bg-white border border-gray-200 rounded-lg shadow w-1/3 flex items-center justify-center">
+        <div className="py-12 bg-white border border-gray-200 rounded-lg shadow w-1/3 flex items-center justify-center lg:w-3/4 md:w-3/4 sm:w-full iphone:w-full xs:w-full sm:px-12 iphone:px-12 xs:px-12">
           <form onSubmit={register} className="space-y-4 w-full max-w-sm">
             <h1 className="font-bold text-2xl">Register</h1>
             <div className="flex flex-col">

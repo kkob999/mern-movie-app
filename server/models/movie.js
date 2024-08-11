@@ -5,7 +5,6 @@ const MovieSchema = new Schema({
     title: {
         type: String,
         required: true,
-        unique: true
     },
     genres: {
         type: String,
@@ -17,7 +16,11 @@ const MovieSchema = new Schema({
     },
     rating : {
         type: Number,
-        
+    },
+    reviewer : {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User'
     }
 })
 

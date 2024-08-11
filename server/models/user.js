@@ -14,6 +14,12 @@ const UserSchema = new Schema({
     }
 })
 
+UserSchema.virtual('movie', {
+    ref: 'Movie',
+    localField: '_id',
+    foreignField: 'reviewer'
+})
+
 const UserModel = model('User', UserSchema)
 
 module.exports = UserModel
